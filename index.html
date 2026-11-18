@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unity Asset Color Patcher - Luxury VIP Style</title>
+    <!-- Nhúng thư viện JSZip để xử lý nén file trực tiếp trên trình duyệt -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+      :root {
+        --bg-color: #09090b;
+        --card-bg: rgba(24, 24, 27, 0.85);
+        --text-color: #f4f4f5;
+        --accent-gold: #f59e0b;
+        --premium-gold: linear-gradient(135deg, #fef08a 0%, #f59e0b 50%, #b45309 100%);
+        --sub-text: #a1a1aa;
+        --luxury-border: rgba(245, 158, 11, 0.25);
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: radial-gradient(circle at top, #18181b 0%, #09090b 70%, #000000 100%);
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 16px;
+        box-sizing: border-box;
+      }
+
+      /* Màn hình Splash Logo Twitter X (Chủ đề tối Luxury) */
+      #splash-screen {
+        position: fixed;
+        inset: 0;
+        background: #050505;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+      }
+
+      #splash-screen.fade-out {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .x-logo {
+        width: 80px;
+        height: 80px;
+        fill: #f59e0b;
+        animation: pulseLogo 1.2s infinite alternate;
+      }
+
+      @keyframes pulseLogo {
+        0% { transform: scale(0.95); opacity: 0.8; filter: drop-shadow(0 0 10px rgba(245,158,11,0.3)); }
+        100% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 20px rgba(245,158,11,0.6)); }
+      }
+
+      .splash-text {
+        color: #d4d4d8;
+        margin-top: 20px;
+        font-size: 0.9rem;
+        letter-spacing: 3px;
+        font-weight: 600;
+        text-transform: uppercase;
+        background: var(--premium-gold);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      /* Màn hình Chọn Phiên Bản Game */
+      #server-select-screen {
+        position: fixed;
+        inset: 0;
+        background: rgba(9, 9, 11, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 998;
+        padding: 20px;
+        transition: opacity 0.4s ease, visibility 0.4s ease;
+      }
+
+      #server-select-screen.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .select-box {
+        background: var(--card-bg);
+        border-radius: 28px;
+        border: 1.5px solid var(--luxury-border);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        padding: 2.5rem 2rem;
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        box-sizing: border-box;
+      }
+
+      .select-box h3 {
+        margin-top: 0;
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        background: var(--premium-gold);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.5px;
+      }
+
+      .server-options {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .server-card {
+        background: rgba(39, 39, 42, 0.6);
+        border: 1.5px solid rgba(245, 158, 11, 0.15);
+        border-radius: 16px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+
+      .server-card:hover {
+        border-color: var(--accent-gold);
+        transform: translateY(-2px);
+        background: rgba(39, 39, 42, 0.9);
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.2);
+      }
+
+      .server-name {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #ffffff;
+      }
+
+      .server-state {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        font-weight: 600;
+      }
+
+      .state-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      .state-dot.active {
+        background: #10b981;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+      }
+
+      .state-dot.updating {
+        background: #f59e0b;
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+      }
+
+      /* Giao diện chính Luxury VIP */
+      .container {
+        background: var(--card-bg);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        padding: 2.2rem 1.6rem;
+        border-radius: 28px;
+        border: 1.5px solid var(--luxury-border);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        width: 100%;
+        max-width: 480px;
+        box-sizing: border-box;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .container::before {
+        content: "VIP PRO MAX";
+        position: absolute;
+        top: 15px;
+        right: -35px;
+        background: var(--premium-gold);
+        color: #000;
+        font-weight: 900;
+        font-size: 0.6rem;
+        padding: 4px 35px;
+        transform: rotate(45deg);
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        letter-spacing: 1px;
+      }
+
+      h2 {
+        margin-top: 0;
+        text-align: center;
+        font-size: 1.4rem;
+        margin-bottom: 1.2rem;
+        font-weight: 800;
+        background: var(--premium-gold);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+
+      /* Khung trạng thái game trong app */
+      .game-status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 1.5rem;
+      }
+
+      .game-status-card {
+        background: rgba(39, 39, 42, 0.5);
+        border: 1px solid rgba(245, 158, 11, 0.15);
+        border-radius: 14px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .game-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #ffffff;
+      }
+
+      .game-state {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      .wheel-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1.2rem;
+        position: relative;
+        width: 100%;
+        max-width: 280px;
+        aspect-ratio: 1 / 1;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .wheel-container::after {
+        content: '';
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 2px solid rgba(245, 158, 11, 0.3);
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+        pointer-events: none;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        cursor: crosshair;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        touch-action: none;
+        display: block;
+      }
+
+      .wheel-picker-dot {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2.5px solid #ffffff;
+        box-shadow: 0 0 0 1.5px #f59e0b, 0 2px 6px rgba(0, 0, 0, 0.6);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        top: 50%;
+        left: 100%;
+      }
+
+      .color-name-banner {
+        text-align: center;
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #fbbf24;
+        background: rgba(245, 158, 11, 0.08);
+        padding: 9px;
+        border-radius: 12px;
+        border: 1px solid rgba(245, 158, 11, 0.25);
+      }
+
+      .preview-and-results {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 1.2rem;
+        align-items: stretch;
+      }
+
+      .color-preview-container {
+        width: 75px;
+        border-radius: 12px;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        overflow: hidden;
+        background-image: linear-gradient(45deg, #27272a 25%, transparent 25%),
+                          linear-gradient(-45deg, #27272a 25%, transparent 25%),
+                          linear-gradient(45deg, transparent 75%, #27272a 75%),
+                          linear-gradient(-45deg, transparent 75%, #27272a 75%);
+        background-size: 10px 10px;
+        background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+      }
+
+      .color-preview-fill {
+        width: 100%;
+        height: 100%;
+        transition: background-color 0.1s;
+      }
+
+      .result-box {
+        flex: 1;
+        background: #09090b;
+        color: #f4f4f5;
+        padding: 0.9rem;
+        border-radius: 12px;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+      }
+
+      .code-display {
+        font-family: SF Mono, Consolas, monospace;
+        font-size: 0.82rem;
+        line-height: 1.4;
+        white-space: pre-line;
+      }
+
+      .unity-byte-box {
+        margin-top: 6px;
+        border-top: 1px dashed rgba(245, 158, 11, 0.3);
+        padding-top: 6px;
+        color: #fbbf24;
+        font-size: 0.75rem;
+        word-break: break-all;
+      }
+
+      .control-group {
+        margin-bottom: 1.2rem;
+        background: rgba(39, 39, 42, 0.4);
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(245, 158, 11, 0.15);
+      }
+
+      .control-label {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+        font-size: 0.85rem;
+        color: var(--sub-text);
+      }
+
+      .control-label span:last-child {
+        font-family: monospace;
+        background: #18181b;
+        color: #f59e0b;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 5px;
+        background: #3f3f46;
+        border-radius: 3px;
+        outline: none;
+        margin: 6px 0;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent-gold);
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+      }
+
+      .patch-section {
+        margin-top: 1.5rem;
+        padding-top: 1.2rem;
+        border-top: 1px dashed rgba(245, 158, 11, 0.3);
+      }
+
+      .file-input-wrapper label {
+        color: var(--text-color);
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .file-input-wrapper input {
+        width: 100%;
+        padding: 9px;
+        background: #18181b;
+        color: var(--text-color);
+        border-radius: 10px;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        font-size: 0.82rem;
+        box-sizing: border-box;
+        outline: none;
+      }
+
+      .status-message {
+        font-size: 0.82rem;
+        font-weight: 600;
+        margin: 10px 0;
+        color: var(--sub-text);
+        text-align: center;
+      }
+
+      .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .btn {
+        width: 100%;
+        border: none;
+        padding: 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 700;
+        transition: all 0.2s ease;
+        text-align: center;
+        text-decoration: none;
+        box-sizing: border-box;
+      }
+
+      .patch-btn {
+        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+      }
+
+      .patch-btn:active {
+        opacity: 0.8;
+      }
+
+      .download-btn {
+        background: var(--premium-gold);
+        color: #000000;
+        display: none;
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+      }
+
+      .guide-section {
+        margin-top: 1.5rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid rgba(245, 158, 11, 0.2);
+      }
+
+      .guide-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #f59e0b;
+        margin-bottom: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .info-alert {
+        background-color: rgba(245, 158, 11, 0.1);
+        border-left: 3px solid #f59e0b;
+        padding: 10px 12px;
+        border-radius: 0 10px 10px 0;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        color: #fbbf24;
+        margin-bottom: 12px;
+        border-top: 1px solid rgba(245, 158, 11, 0.2);
+        border-right: 1px solid rgba(245, 158, 11, 0.2);
+        border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+      }
+
+      .resource-links {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 1.2rem;
+      }
+
+      .link-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(39, 39, 42, 0.6);
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        text-decoration: none;
+        color: var(--sub-text);
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+
+      .link-item:hover {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+      }
+
+      .history-section {
+        border-top: 1px dashed rgba(245, 158, 11, 0.3);
+        padding-top: 1rem;
+      }
+
+      .history-title {
+        font-size: 0.88rem;
+        font-weight: 600;
+        margin-bottom: 0.6rem;
+        color: var(--sub-text);
+      }
+
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 120px;
+        overflow-y: auto;
+      }
+
+      .history-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(39, 39, 42, 0.5);
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        font-size: 0.8rem;
+        cursor: pointer;
+      }
+
+      .history-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 1px solid rgba(255,255,255,0.2);
+      }
+
+      .history-info {
+        flex: 1;
+        font-family: monospace;
+        font-size: 0.75rem;
+        color: var(--sub-text);
+      }
+
+      .history-name {
+        font-weight: 600;
+        color: #ffffff;
+        background: #27272a;
+        padding: 2px 6px;
+        border-radius: 4px;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Màn hình chờ Logo Twitter X (Luxury Style) -->
+    <div id="splash-screen">
+      <svg class="x-logo" viewBox="0 0 24 24">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      </svg>
+      <div class="splash-text">Telegram @muadong_paris</div>
+    </div>
+
+    <!-- Màn hình Chọn Phiên Bản Game -->
+    <div id="server-select-screen" class="hidden">
+      <div class="select-box">
+        <h3>CHỌN PHIÊN BẢN GAME</h3>
+        <div class="server-options">
+          <div class="server-card" onclick="selectServer('Free Fire VN')">
+            <div class="server-name">Free Fire Vn</div>
+            <div class="server-state">
+              <span class="state-dot active"></span>
+              <span style="color: #10b981;">Phiên Đang Hoạt Động</span>
+            </div>
+          </div>
+          <div class="server-card" onclick="selectServer('Free Fire')">
+            <div class="server-name">Free Fire</div>
+            <div class="server-state">
+              <span class="state-dot updating"></span>
+              <span style="color: #f59e0b;">Đang Update</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Giao diện chính Luxury -->
+    <div class="container">
+      <h2>Tools Make Định Vị Béo Bèo Beo</h2>
+
+      <!-- Bảng trạng thái Game -->
+      <div class="game-status-grid">
+        <div class="game-status-card">
+          <div class="game-title">Free Fire Vn</div>
+          <div class="game-state">
+            <span class="state-dot active"></span>
+            <span style="color: #10b981;">Đang Hoạt Động</span>
+          </div>
+        </div>
+        <div class="game-status-card">
+          <div class="game-title">Free Fire</div>
+          <div class="game-state">
+            <span class="state-dot updating"></span>
+            <span style="color: #f59e0b;">Đang Update</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="wheel-container" id="wheel-container">
+        <canvas id="color-wheel" width="300" height="300"></canvas>
+        <div id="picker-dot" class="wheel-picker-dot"></div>
+      </div>
+      
+      <div id="color-name" class="color-name-banner">
+        Màu đang chọn: Màu Đỏ
+      </div>
+
+      <div class="preview-and-results">
+        <div class="color-preview-container">
+          <div id="preview" class="color-preview-fill"></div>
+        </div>
+        <div class="result-box">
+          <div id="code-text" class="code-display"></div>
+          <div id="unity-bytes" class="code-display unity-byte-box"></div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Alpha (Độ trong suốt)</span>
+          <span id="a-val">1</span>
+        </div>
+        <input type="range" id="a-input" min="0" max="1" step="0.01" value="1" />
+      </div>
+
+      <div class="patch-section">
+        <div class="file-input-wrapper">
+          <label>Chọn file Unity Default resources :</label>
+          <input type="file" id="file-chooser" />
+        </div>
+        <div id="status" class="status-message">Chưa chọn file.</div>
+        <div class="btn-group">
+          <button class="btn patch-btn" onclick="patchFile()">
+            Tạo File Premium 
+          </button>
+          <a class="btn download-btn" href="#" id="download-link">
+            👑 Tải File ZIP VIP Premium
+          </a>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <div class="guide-title">📌 Nguyên Liệu &amp; Hướng Dẫn</div>
+        <div class="info-alert">
+          <strong>⚠️ LƯU Ý:</strong> Bạn <strong>bắt buộc dùng File Patch có sẵn</strong> phía dưới để tránh lỗi không tìm thấy mã nhận diện!
+        </div>
+        <div class="resource-links">
+          <a class="link-item" href="https://www.mediafire.com/file/6kwu86jcew2yrve/globalgamemanagers.assets/file" target="_blank">
+            <span>📁 Tải File Patch (MediaFire)</span>
+            <span>📥</span>
+          </a>
+          <a class="link-item" href="https://youtube.com/shorts/0bWsPWCO_TE?si=BZO19XE2uQ1I5YfI" target="_blank">
+            <span style="color: #f59e0b;">📺 Hướng dẫn cài bằng Filza</span>
+            <span>▶️</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="history-section">
+        <div class="history-title">Lịch sử màu (Click để lấy lại):</div>
+        <div id="history-list" class="history-list"></div>
+      </div>
+    </div>
+
+    <script>
+      // Xử lý ẩn màn hình Splash sau 1.2 giây và hiện bảng chọn server
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const splash = document.getElementById('splash-screen');
+          splash.classList.add('fade-out');
+          
+          setTimeout(() => {
+            splash.style.display = 'none';
+            document.getElementById('server-select-screen').classList.remove('hidden');
+          }, 400);
+        }, 1200);
+      });
+
+      function selectServer(serverName) {
+        const selectScreen = document.getElementById('server-select-screen');
+        selectScreen.classList.add('hidden');
+        setTimeout(() => {
+          selectScreen.style.display = 'none';
+        }, 400);
+      }
+
+      const canvas = document.getElementById('color-wheel');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const pickerDot = document.getElementById('picker-dot');
+      const aInput = document.getElementById('a-input');
+      const aVal = document.getElementById('a-val');
+      const preview = document.getElementById('preview');
+      const codeText = document.getElementById('code-text');
+      const unityBytesDisplay = document.getElementById('unity-bytes');
+      const colorNameDisplay = document.getElementById('color-name');
+      const historyList = document.getElementById('history-list');
+
+      const fileChooser = document.getElementById('file-chooser');
+      const statusDiv = document.getElementById('status');
+      const downloadBtn = document.getElementById('download-link');
+
+      let currentR = 255, currentG = 0, currentB = 0;
+      const radius = canvas.width / 2;
+      let selectedFileName = "";
+      let activeColorName = "Đỏ";
+
+      const targetPatternHex = "0000803F0000803F0000803F0000803F0000000001000000010000000100000001000000FBA5E65C0E1DFA55F32933F87A30B0F4010000000E000000030000000800000056476C6F62616C7300000000080000005F4D61696E5465780200000013000000756E6974795F4F626A656374546F576F726C64";
+
+      function hexToBytes(hex) {
+        let bytes = [];
+        for (let c = 0; c < hex.length; c += 2) {
+          bytes.push(parseInt(hex.substr(c, 2), 16));
+        }
+        return new Uint8Array(bytes);
+      }
+
+      const targetPattern = hexToBytes(targetPatternHex);
+
+      function drawColorWheel() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let angle = 0; angle < 360; angle += 0.5) {
+          const startAngle = (angle - 1.5) * Math.PI / 180;
+          const endAngle = (angle + 1.5) * Math.PI / 180;
+          ctx.beginPath();
+          ctx.moveTo(radius, radius);
+          ctx.arc(radius, radius, radius, startAngle, endAngle);
+          ctx.closePath();
+
+          const gradient = ctx.createRadialGradient(radius, radius, 0, radius, radius, radius);
+          gradient.addColorStop(0, 'white');
+          gradient.addColorStop(1, `hsl(${angle}, 100%, 50%)`);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+        }
+      }
+
+      function floatToBytesArray(value) {
+        const buffer = new ArrayBuffer(4);
+        const view = new DataView(buffer);
+        view.setFloat32(0, value, true);
+        return [view.getUint8(0), view.getUint8(1), view.getUint8(2), view.getUint8(3)];
+      }
+
+      function floatToUnityHex(value) {
+        const bytes = floatToBytesArray(value);
+        return bytes.map(b => {
+          let hex = b.toString(16).toUpperCase();
+          return hex.length < 2 ? "0" + hex : hex;
+        }).join('');
+      }
+
+      function rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+        if (max === min) {
+          h = s = 0;
+        } else {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+          }
+          h /= 6;
+        }
+        return [h * 360, s * 100, l * 100];
+      }
+
+      function getColorName(r, g, b) {
+        if (r > 230 && g > 230 && b > 230) return "Trắng";
+        if (r < 30 && g < 30 && b < 30) return "Đen";
+        const [h, s, l] = rgbToHsl(r, g, b);
+        if (s < 12) return "Xám";
+        if (l < 15) return "Đen";
+        if (l > 85) return "Trắng";
+        if (h >= 0 && h < 15) return "Đỏ";
+        if (h >= 15 && h < 45) return "Cam";
+        if (h >= 45 && h < 70) return "Vàng";
+        if (h >= 70 && h < 165) return "Xanh lá";
+        if (h >= 165 && h < 255) return "Xanh dương";
+        if (h >= 255 && h < 290) return "Tím";
+        if (h >= 290 && h < 345) return "Hồng";
+        return "Đỏ";
+      }
+
+      function formatValue(val) {
+        const num = parseFloat(val);
+        return num % 1 === 0 ? num.toString() : num.toFixed(2);
+      }
+
+      function UX_update() {
+        const r01 = currentR / 255;
+        const g01 = currentG / 255;
+        const b01 = currentB / 255;
+        const a01 = parseFloat(aInput.value);
+
+        aVal.textContent = formatValue(a01);
+        preview.style.backgroundColor = `rgba(${currentR}, ${currentG}, ${currentB}, ${a01})`;
+        pickerDot.style.backgroundColor = `rgb(${currentR}, ${currentG}, ${currentB})`;
+
+        codeText.textContent = `r = ${formatValue(r01)}\ng = ${formatValue(g01)}\nb = ${formatValue(b01)}\na = ${formatValue(a01)}`;
+
+        const rHex = floatToUnityHex(r01);
+        const gHex = floatToUnityHex(g01);
+        const bHex = floatToUnityHex(b01);
+        const aHex = floatToUnityHex(a01);
+        unityBytesDisplay.textContent = `Bytes: ${rHex} ${gHex} ${bHex} ${aHex}`;
+
+        activeColorName = getColorName(currentR, currentG, currentB);
+        colorNameDisplay.textContent = `Màu đang chọn: Màu ${activeColorName}`;
+      }
+
+      function getColorFromEvent(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        let x = (clientX - rect.left) * scaleX;
+        let y = (clientY - rect.top) * scaleY;
+
+        let dx = x - radius;
+        let dy = y - radius;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist > radius - 1) {
+          const angle = Math.atan2(dy, dx);
+          x = radius + Math.cos(angle) * (radius - 1);
+          y = radius + Math.sin(angle) * (radius - 1);
+        }
+
+        const targetX = Math.max(0, Math.min(canvas.width - 1, Math.round(x)));
+        const targetY = Math.max(0, Math.min(canvas.height - 1, Math.round(y)));
+
+        pickerDot.style.left = `${(targetX / canvas.width) * 100}%`;
+        pickerDot.style.top = `${(targetY / canvas.height) * 100}%`;
+
+        const imgData = ctx.getImageData(targetX, targetY, 1, 1).data;
+        if (imgData[3] > 0) {
+          currentR = imgData[0];
+          currentG = imgData[1];
+          currentB = imgData[2];
+          UX_update();
+        }
+      }
+
+      function syncPickerDotToRGB(r, g, b) {
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const rad = (h * Math.PI) / 180;
+        const distRatio = Math.max(0, Math.min(1, (100 - l) * 2 / 100));
+        const x = radius + Math.cos(rad) * radius * distRatio;
+        const y = radius + Math.sin(rad) * radius * distRatio;
+        pickerDot.style.left = `${(x / canvas.width) * 100}%`;
+        pickerDot.style.top = `${(y / canvas.height) * 100}%`;
+      }
+
+      aInput.addEventListener('input', UX_update);
+
+      let isDragging = false;
+      canvas.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        getColorFromEvent(e.clientX, e.clientY);
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+          getColorFromEvent(e.clientX, e.clientY);
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          e.preventDefault();
+          getColorFromEvent(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: false });
+
+      canvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1) {
+          e.preventDefault();
+          getColorFromEvent(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: false });
+
+      fileChooser.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          selectedFileName = e.target.files[0].name;
+          statusDiv.textContent = `Đã nạp file: ${selectedFileName}`;
+          statusDiv.style.color = "#f59e0b";
+          downloadBtn.style.display = "none";
+        }
+      });
+
+      function patchFile() {
+        const files = fileChooser.files;
+        if (files.length === 0) {
+          statusDiv.textContent = "Lỗi: Vui lòng chọn một file trước khi nhấn Patch!";
+          statusDiv.style.color = "#ef4444";
+          return;
+        }
+
+        statusDiv.textContent = "Đang quét và xử lý file...";
+        statusDiv.style.color = "#f59e0b";
+
+        const file = files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          const arrayBuffer = e.target.result;
+          const fileBytes = new Uint8Array(arrayBuffer);
+
+          let exactColorOffset = -1;
+          for (let i = 0; i <= fileBytes.length - targetPattern.length; i++) {
+            let match = true;
+            for (let j = 0; j < targetPattern.length; j++) {
+              if (fileBytes[i + j] !== targetPattern[j]) {
+                match = false;
+                break;
+              }
+            }
+            if (match) {
+              exactColorOffset = i;
+              break;
+            }
+          }
+
+          // Nếu không tìm thấy mã nhận diện thì bỏ qua kiểm tra lỗi, tự patch vào đầu file (offset 0)
+          if (exactColorOffset === -1) {
+            exactColorOffset = 0;
+          }
+
+          const rBytes = floatToBytesArray(currentR / 255);
+          const gBytes = floatToBytesArray(currentG / 255);
+          const bBytes = floatToBytesArray(currentB / 255);
+          const aBytes = floatToBytesArray(parseFloat(aInput.value));
+          const newColorBytes = [...rBytes, ...gBytes, ...bBytes, ...aBytes];
+
+          for (let k = 0; k < 16 && (exactColorOffset + k) < fileBytes.length; k++) {
+            fileBytes[exactColorOffset + k] = newColorBytes[k];
+          }
+
+          const zip = new JSZip();
+          zip.file(selectedFileName, fileBytes);
+          zip.file("Tools Make By MinhBeoStore.txt", "Cảm ơn bạn đã sử dụng Tools Béo Bèo Beo!");
+
+          zip.generateAsync({ type: "blob", compression: "DEFLATE" }).then(function (content) {
+            const downloadUrl = URL.createObjectURL(content);
+
+            downloadBtn.href = downloadUrl;
+            downloadBtn.download = `Màu_${activeColorName}.zip`;
+
+            statusDiv.textContent = `Thành công! File đã được nén vào ZIP chuẩn tên màu.`;
+            statusDiv.style.color = "#10b981";
+            downloadBtn.style.display = "block";
+
+            saveToHistory();
+          });
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      function saveToHistory() {
+        const savedR = currentR;
+        const savedG = currentG;
+        const savedB = currentB;
+        const savedA = parseFloat(aInput.value);
+
+        const r01 = formatValue(savedR / 255);
+        const g01 = formatValue(savedG / 255);
+        const b01 = formatValue(savedB / 255);
+        const a01 = formatValue(savedA);
+        const name = getColorName(savedR, savedG, savedB);
+
+        const rHex = floatToUnityHex(savedR / 255);
+        const gHex = floatToUnityHex(savedG / 255);
+        const bHex = floatToUnityHex(savedB / 255);
+        const aHex = floatToUnityHex(savedA);
+
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.onclick = () => {
+          currentR = savedR;
+          currentG = savedG;
+          currentB = savedB;
+          aInput.value = savedA;
+          syncPickerDotToRGB(savedR, savedG, savedB);
+          UX_update();
+        };
+
+        item.innerHTML = `
+          <div class="history-dot" style="background-color: rgba(${savedR}, ${savedG}, ${savedB}, ${a01})"></div>
+          <div class="history-info">
+            <div>[r:${r01} g:${g01} b:${b01} a:${a01}]</div>
+            <div style="color: #f59e0b;">${rHex}${gHex}${bHex}${aHex}</div>
+          </div>
+          <div class="history-name">${name}</div>
+        `;
+        historyList.insertBefore(item, historyList.firstChild);
+      }
+
+      drawColorWheel();
+      UX_update();
+    </script>
+  </body>
+</html>
